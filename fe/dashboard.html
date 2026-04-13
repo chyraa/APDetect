@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - APDetect</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #0f2542;
+            --navy-mid: #1a3a5c;
+            --navy-light: #274a78;
+            --accent: #3b82f6;
+            --accent-bright: #60a5fa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f0f4f9;
+            --card: #ffffff;
+            --text: #0f2542;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --mono: 'Space Mono', monospace;
+            --sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NAV */
+        nav {
+            background: var(--navy);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(15,37,66,0.3);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .nav-logo img { width: 22px; height: 22px; object-fit: contain; }
+        .nav-title { color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.05em; }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a.active {
+            color: #fff;
+            border-bottom: 2px solid var(--accent-bright);
+            padding-bottom: 2px;
+        }
+
+        /* LAYOUT */
+        main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; flex: 1; width: 100%; }
+
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; color: var(--navy); }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 8px rgba(15,37,66,0.06);
+        }
+
+        /* HERO */
+        .hero {
+            background: var(--navy);
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 300px; height: 300px;
+            background: rgba(59,130,246,0.08);
+            border-radius: 50%;
+            right: -60px; top: -80px;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 200px; height: 200px;
+            background: rgba(96,165,250,0.06);
+            border-radius: 50%;
+            right: 100px; bottom: -60px;
+            pointer-events: none;
+        }
+        .hero-text { position: relative; z-index: 1; }
+        .hero-text h2 {
+            font-size: 2rem; font-weight: 700; color: #fff;
+            line-height: 1.2; margin-bottom: 0.75rem;
+        }
+        .hero-text h2 span { color: var(--accent-bright); }
+        .hero-text p { color: rgba(255,255,255,0.6); font-size: 0.9rem; max-width: 420px; }
+        .hero-btn {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 0.875rem 2rem;
+            background: var(--accent);
+            color: #fff;
+            border: none; border-radius: 12px;
+            font-family: var(--sans); font-size: 0.95rem; font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(59,130,246,0.4);
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .hero-btn:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.45); }
+        .hero-btn:active { transform: scale(0.98); }
+
+        /* STAT CARDS */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 8px rgba(15,37,66,0.06);
+            padding: 1.5rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .stat-icon.blue { background: #dbeafe; }
+        .stat-icon.green { background: #d1fae5; }
+        .stat-icon.red { background: #fee2e2; }
+        .stat-icon svg { width: 22px; height: 22px; }
+        .stat-icon.blue svg { stroke: var(--accent); }
+        .stat-icon.green svg { stroke: var(--success); }
+        .stat-icon.red svg { stroke: var(--danger); }
+        .stat-info {}
+        .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+        .stat-value { font-size: 1.75rem; font-weight: 700; font-family: var(--mono); line-height: 1; }
+        .stat-value.blue { color: var(--accent); }
+        .stat-value.green { color: var(--success); }
+        .stat-value.red { color: var(--danger); }
+
+        /* TABLE */
+        .table-card { overflow: hidden; }
+        .table-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .table-header h2 { font-size: 1rem; font-weight: 700; }
+        .table-badge {
+            font-size: 0.78rem; background: var(--bg); color: var(--text-muted);
+            padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border);
+            font-family: var(--mono);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: var(--navy); }
+        thead th {
+            color: rgba(255,255,255,0.8); font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            padding: 0.875rem 1rem; text-align: left;
+        }
+        thead th:last-child { text-align: center; }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        tbody tr:hover { background: #f8fafc; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td { padding: 0.875rem 1rem; font-size: 0.875rem; }
+        .td-waktu { font-family: var(--mono); font-size: 0.78rem; color: var(--text-muted); }
+        .td-lokasi { font-weight: 500; }
+        .td-status { text-align: center; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+        }
+        .badge-patuh { background: #d1fae5; color: #065f46; }
+        .badge-tidak { background: #fee2e2; color: #991b1b; }
+
+        /* FOOTER */
+        footer {
+            background: var(--navy);
+            color: rgba(255,255,255,0.45);
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            line-height: 1.8;
+            margin-top: auto;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeInUp 0.5s ease both; }
+        .fade-in:nth-child(1) { animation-delay: 0.05s; }
+        .fade-in:nth-child(2) { animation-delay: 0.1s; }
+        .fade-in:nth-child(3) { animation-delay: 0.15s; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-brand">
+        <div class="nav-logo"><img src="assets/logo.png" alt="Logo"></div>
+        <span class="nav-title">APDETECT</span>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html" class="active">Beranda</a>
+        <a href="knowledge.html">Pengetahuan</a>
+        <a href="deteksi.html">Deteksi</a>
+    </div>
+</nav>
+
+<main>
+    <!-- Hero -->
+    <div class="hero fade-in">
+        <div class="hero-text">
+            <h2>Selamat Datang di <span>APDetect</span></h2>
+            <p>Sistem deteksi APD berbasis AI untuk memastikan keselamatan pekerja di area proyek secara real-time.</p>
+        </div>
+        <a href="deteksi.html" class="hero-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
+            Mulai Deteksi
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card fade-in">
+            <div class="stat-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Total Deteksi Hari Ini</div>
+                <div class="stat-value blue" id="statTotal">—</div>
+            </div>
+        </div>
+        <div class="stat-card fade-in">
+            <div class="stat-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Patuh APD</div>
+                <div class="stat-value green" id="statPatuh">—</div>
+            </div>
+        </div>
+        <div class="stat-card fade-in">
+            <div class="stat-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Tidak Patuh</div>
+                <div class="stat-value red" id="statTidak">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card table-card fade-in">
+        <div class="table-header">
+            <h2>Riwayat Deteksi</h2>
+            <span class="table-badge" id="riwayatCount">0 entri</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Area Proyek</th>
+                    <th>Helm</th>
+                    <th>Rompi</th>
+                    <th style="text-align:center">Status</th>
+                </tr>
+            </thead>
+            <tbody id="riwayatTable">
+                <tr>
+                    <td colspan="5" style="text-align:center; padding: 3rem; color: var(--text-muted); font-size: 0.875rem;">
+                        Memuat data...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer>
+    APDetect — Smart PPE Detection System<br>
+    © 2026 APDetect. All Rights Reserved.
+</footer>
+
+<script>
+const API_BASE = "http://127.0.0.1:5000";
+
+function getToken() { return localStorage.getItem("token") || null; }
+
+async function loadDashboard() {
+    const token = getToken();
+    if (!token) {
+        window.location.href = "auth.html";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/report/summary`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.status === 401) { window.location.href = "auth.html"; return; }
+
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById("statTotal").textContent = data.total ?? "—";
+            document.getElementById("statPatuh").textContent = data.patuh ?? "—";
+            document.getElementById("statTidak").textContent = data.tidak_patuh ?? "—";
+        }
+    } catch (e) {
+        // Kalau endpoint belum ada, tampilkan — saja
+        document.getElementById("statTotal").textContent = "—";
+        document.getElementById("statPatuh").textContent = "—";
+        document.getElementById("statTidak").textContent = "—";
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/report/history`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            const rows = data.detections ?? data ?? [];
+            renderTable(rows);
+        } else {
+            renderEmpty();
+        }
+    } catch (e) {
+        renderEmpty();
+    }
+}
+
+function renderTable(rows) {
+    const tbody = document.getElementById("riwayatTable");
+    document.getElementById("riwayatCount").textContent = rows.length + " entri";
+
+    if (rows.length === 0) { renderEmpty(); return; }
+
+    tbody.innerHTML = rows.map(r => {
+        const patuh = r.helmet_count > 0 && r.vest_count > 0;
+        const waktu = r.created_at
+            ? new Date(r.created_at).toLocaleString("id-ID")
+            : (r.waktu ?? "-");
+        return `
+            <tr>
+                <td class="td-waktu">${waktu}</td>
+                <td class="td-lokasi">${r.area_proyek ?? "-"}</td>
+                <td style="font-family:var(--mono);font-weight:700;color:var(--success)">${r.helmet_count ?? 0}</td>
+                <td style="font-family:var(--mono);font-weight:700;color:var(--accent)">${r.vest_count ?? 0}</td>
+                <td class="td-status">
+                    <span class="badge ${patuh ? 'badge-patuh' : 'badge-tidak'}">
+                        ${patuh ? '✓ PATUH' : '✗ TIDAK PATUH'}
+                    </span>
+                </td>
+            </tr>`;
+    }).join("");
+}
+
+function renderEmpty() {
+    document.getElementById("riwayatTable").innerHTML = `
+        <tr>
+            <td colspan="5" style="text-align:center; padding: 3rem; color: var(--text-muted); font-size: 0.875rem;">
+                Belum ada data deteksi.
+            </td>
+        </tr>`;
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

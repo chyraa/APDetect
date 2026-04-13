@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi - APDetect</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #0f2542;
+            --navy-mid: #1a3a5c;
+            --navy-light: #274a78;
+            --accent: #3b82f6;
+            --accent-bright: #60a5fa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f0f4f9;
+            --card: #ffffff;
+            --text: #0f2542;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --mono: 'Space Mono', monospace;
+            --sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NAV */
+        nav {
+            background: var(--navy);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(15,37,66,0.3);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .nav-logo img { width: 22px; height: 22px; object-fit: contain; }
+        .nav-title { color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.05em; }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a.active {
+            color: #fff;
+            border-bottom: 2px solid var(--accent-bright);
+            padding-bottom: 2px;
+        }
+
+        /* LAYOUT */
+        main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; flex: 1; width: 100%; }
+
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; color: var(--navy); }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 8px rgba(15,37,66,0.06);
+        }
+
+        /* AREA INPUT */
+        .area-card { padding: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .area-card label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+        .area-input-wrap { position: relative; flex: 1; min-width: 220px; max-width: 380px; }
+        .area-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+        #areaInput {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--bg);
+        }
+        #areaInput:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+        .area-hint { font-size: 0.78rem; color: var(--text-muted); }
+
+        /* DETECTION PANEL */
+        .detection-card { padding: 2rem; margin-bottom: 1.5rem; }
+        .detection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+        @media (max-width: 680px) { .detection-grid { grid-template-columns: 1fr; } }
+
+        .section-label {
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 0.75rem 1.5rem;
+            border-radius: 10px; border: none; cursor: pointer;
+            font-family: var(--sans); font-size: 0.9rem; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--navy); color: #fff; box-shadow: 0 2px 8px rgba(15,37,66,0.2); }
+        .btn-primary:hover { background: var(--navy-light); }
+        .btn-secondary { background: var(--bg); color: var(--navy); border: 1.5px solid var(--border); }
+        .btn-secondary:hover { background: #e8edf5; }
+        .btn-group { display: flex; flex-direction: column; gap: 0.75rem; }
+
+        /* Stats */
+        .stats-row { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+        .stats-row.visible { display: grid; }
+        .stat-item { background: var(--bg); border-radius: 10px; padding: 0.75rem; text-align: center; border: 1px solid var(--border); }
+        .stat-value { font-size: 1.5rem; font-weight: 700; font-family: var(--mono); }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+        .stat-helm .stat-value { color: var(--success); }
+        .stat-vest .stat-value { color: var(--accent); }
+        .stat-status .stat-value { font-size: 0.72rem; padding: 4px 8px; border-radius: 6px; display: inline-block; font-family: var(--sans); font-weight: 700; }
+        .stat-status.patuh .stat-value { background: #d1fae5; color: #065f46; }
+        .stat-status.tidak .stat-value { background: #fee2e2; color: #991b1b; }
+
+        /* Preview */
+        .preview-box {
+            position: relative;
+            background: #f8fafc;
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            min-height: 280px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .preview-box.active { border-style: solid; border-color: var(--accent); }
+        .preview-placeholder { text-align: center; color: var(--text-muted); padding: 2rem; }
+        .preview-placeholder svg { margin: 0 auto 0.75rem; display: block; opacity: 0.25; }
+        .preview-placeholder span { font-size: 0.85rem; display: block; }
+        #detectedImage { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; display: none; }
+        #video { width: 100%; border-radius: 12px; display: none; }
+
+        .status-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 0.75rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+        .status-dot.pulse { background: var(--accent); animation: pulse 1.2s infinite; }
+        .status-dot.success { background: var(--success); }
+        .status-dot.error { background: var(--danger); }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+        #statusText { font-size: 0.82rem; color: var(--text-muted); font-family: var(--mono); }
+
+        /* Loader */
+        .loader-overlay {
+            display: none; position: absolute; inset: 0;
+            background: rgba(255,255,255,0.88);
+            border-radius: 12px;
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 12px; z-index: 10;
+        }
+        .loader-overlay.show { display: flex; }
+        .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { font-size: 0.8rem; color: var(--text-muted); font-family: var(--mono); }
+
+        /* TABLE */
+        .table-card { overflow: hidden; margin-bottom: 1.5rem; }
+        .table-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .table-header h2 { font-size: 1rem; font-weight: 700; }
+        .table-count { font-size: 0.78rem; background: var(--bg); color: var(--text-muted); padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border); font-family: var(--mono); }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: var(--navy); }
+        thead th { color: rgba(255,255,255,0.8); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.875rem 1rem; text-align: center; }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        tbody tr:hover { background: #f8fafc; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td { padding: 0.875rem 1rem; text-align: center; font-size: 0.875rem; }
+        .td-no { font-family: var(--mono); font-size: 0.78rem; color: var(--text-muted); }
+        .td-waktu { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
+        .td-helm { font-weight: 700; color: var(--success); font-family: var(--mono); font-size: 1rem; }
+        .td-vest { font-weight: 700; color: var(--accent); font-family: var(--mono); font-size: 1rem; }
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+        .badge-patuh { background: #d1fae5; color: #065f46; }
+        .badge-tidak { background: #fee2e2; color: #991b1b; }
+        .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
+        .empty-state svg { margin: 0 auto 1rem; display: block; opacity: 0.2; }
+        .empty-state p { font-size: 0.875rem; }
+
+        /* ACTIONS */
+        .action-row { display: flex; justify-content: center; padding-bottom: 2rem; }
+        .btn-download {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.75rem 2rem; border-radius: 10px; border: none; cursor: pointer;
+            font-family: var(--sans); font-size: 0.9rem; font-weight: 600;
+            background: var(--success); color: #fff;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+            transition: all 0.2s;
+        }
+        .btn-download:hover { background: #059669; }
+        .btn-download:active { transform: scale(0.98); }
+
+        footer { background: var(--navy); color: rgba(255,255,255,0.45); text-align: center; padding: 1.5rem; font-size: 0.8rem; line-height: 1.8; }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .row-new { animation: fadeInDown 0.3s ease; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-brand">
+        <div class="nav-logo"><img src="assets/logo.png" alt="Logo"></div>
+        <span class="nav-title">APDETECT</span>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html">Beranda</a>
+        <a href="knowledge.html">Pengetahuan</a>
+        <a href="deteksi.html" class="active">Deteksi</a>
+    </div>
+</nav>
+
+<main>
+    <div class="page-header">
+        <h1>Deteksi APD</h1>
+        <p>Upload gambar atau gunakan kamera untuk mendeteksi helm dan rompi keselamatan.</p>
+    </div>
+
+    <!-- Area -->
+    <div class="card area-card">
+        <label for="areaInput">Area Proyek</label>
+        <div class="area-input-wrap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input type="text" id="areaInput" placeholder="Contoh: Proyek Gedung A">
+        </div>
+        <span class="area-hint">Isi area sebelum deteksi</span>
+    </div>
+
+    <!-- Detection -->
+    <div class="card detection-card">
+        <div class="detection-grid">
+            <div>
+                <p class="section-label">Input Sumber</p>
+                <div class="btn-group">
+                    <input type="file" id="uploadImage" accept="image/*" style="display:none">
+                    <button class="btn btn-primary" id="btnUpload">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Pilih Gambar
+                    </button>
+                    <button class="btn btn-secondary" id="btnCamera">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7 16 12 23 17V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                        <span id="cameraLabel">Aktifkan Kamera</span>
+                    </button>
+                </div>
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-item stat-helm">
+                        <div class="stat-value" id="statHelmet">0</div>
+                        <div class="stat-label">Helm</div>
+                    </div>
+                    <div class="stat-item stat-vest">
+                        <div class="stat-value" id="statVest">0</div>
+                        <div class="stat-label">Rompi</div>
+                    </div>
+                    <div class="stat-item stat-status" id="statStatusBox">
+                        <div class="stat-value" id="statStatus">-</div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <p class="section-label">Hasil Deteksi</p>
+                <div class="preview-box" id="previewBox">
+                    <div class="loader-overlay" id="loaderOverlay">
+                        <div class="spinner"></div>
+                        <span class="loader-text">Memproses...</span>
+                    </div>
+                    <div class="preview-placeholder" id="previewPlaceholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>Gambar hasil muncul di sini</span>
+                    </div>
+                    <img id="detectedImage" alt="Hasil Deteksi">
+                    <video id="video" autoplay playsinline muted></video>
+                </div>
+                <div class="status-wrap">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Menunggu input...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; white-space: nowrap;">Filter Tanggal</label>
+            <input type="date" id="dateFrom" style="padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 10px; font-family: var(--sans); font-size: 0.9rem; outline: none; transition: border-color 0.2s;">
+            <span style="color: var(--text-muted);">hingga</span>
+            <input type="date" id="dateTo" style="padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 10px; font-family: var(--sans); font-size: 0.9rem; outline: none; transition: border-color 0.2s;">
+            <button id="btnFilter" class="btn btn-primary" style="flex: 0; min-width: 100px;">Terapkan Filter</button>
+            <button id="btnResetFilter" class="btn btn-secondary" style="flex: 0; min-width: 100px;">Reset</button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card table-card">
+        <div class="table-header">
+            <h2>Laporan Hasil Deteksi</h2>
+            <span class="table-count" id="tableCount">0 entri</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th><th>Waktu</th><th>Area</th><th>Helm</th><th>Rompi</th><th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable">
+                <tr id="emptyRow">
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            <p>Belum ada data deteksi.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="action-row">
+        <button class="btn-download" onclick="downloadPDF()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Laporan PDF
+        </button>
+        <div id="pdfContainer" style="display:none;"></div>
+    </div>
+</main>
+
+<footer>
+    APDetect — Smart PPE Detection System<br>
+    © 2026 APDetect. All Rights Reserved.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const API_BASE = "http://127.0.0.1:5000";
+
+let nomor = 1, entryCount = 0;
+let currentStream = null, detecting = false, cameraActive = false;
+let allRows = []; // Menyimpan semua baris data
+let currentData = []; // Track data yang ditampilkan (untuk PDF filter)
+
+const uploadInput   = document.getElementById("uploadImage");
+const detectedImage = document.getElementById("detectedImage");
+const video         = document.getElementById("video");
+const statusText    = document.getElementById("statusText");
+const statusDot     = document.getElementById("statusDot");
+const previewBox    = document.getElementById("previewBox");
+const placeholder   = document.getElementById("previewPlaceholder");
+const loaderOverlay = document.getElementById("loaderOverlay");
+const statsRow      = document.getElementById("statsRow");
+const btnCamera     = document.getElementById("btnCamera");
+const cameraLabel   = document.getElementById("cameraLabel");
+const tableCountEl  = document.getElementById("tableCount");
+const dateFrom      = document.getElementById("dateFrom");
+const dateTo        = document.getElementById("dateTo");
+const btnFilter     = document.getElementById("btnFilter");
+const btnResetFilter= document.getElementById("btnResetFilter");
+
+function setStatus(msg, type = "idle") {
+    statusText.textContent = msg;
+    statusDot.className = "status-dot" + (type === "loading" ? " pulse" : type === "success" ? " success" : type === "error" ? " error" : "");
+}
+
+function getToken() { return localStorage.getItem("token") || null; }
+function getArea()  { return document.getElementById("areaInput").value.trim() || "Area Umum"; }
+
+function showLoader(on) { loaderOverlay.classList.toggle("show", on); }
+
+function showPreview(url) {
+    // Sembunyikan placeholder & video
+    placeholder.style.display = "none";
+    video.style.display = "none";
+    previewBox.classList.add("active");
+
+    // Tunggu gambar selesai load baru tampilkan
+    detectedImage.onload = () => {
+        detectedImage.style.display = "block";
+        showLoader(false);
+        setStatus("Deteksi selesai ✓", "success");
+    };
+    detectedImage.onerror = () => {
+        showLoader(false);
+        setStatus("Gagal memuat gambar hasil", "error");
+        console.error("Gagal load:", url);
+    };
+    detectedImage.src = url + "?t=" + Date.now();
+}
+
+function showStats(helmet, vest) {
+    document.getElementById("statHelmet").textContent = helmet;
+    document.getElementById("statVest").textContent   = vest;
+    const patuh = helmet > 0 && vest > 0 && helmet === vest;
+    const box = document.getElementById("statStatusBox");
+    document.getElementById("statStatus").textContent = patuh ? "PATUH" : "TDK PATUH";
+    box.className = "stat-item stat-status " + (patuh ? "patuh" : "tidak");
+    statsRow.classList.add("visible");
+}
+
+function tambahKeLaporan(helmet, vest) {
+    const emptyRow = document.getElementById("emptyRow");
+    if (emptyRow) emptyRow.remove();
+    entryCount++;
+    tableCountEl.textContent = entryCount + " entri";
+    const patuh = helmet > 0 && vest > 0 && helmet === vest;
+    const row = document.createElement("tr");
+    row.className = "row-new";
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("id-ID");
+    const timeStr = now.toLocaleTimeString("id-ID");
+    row.innerHTML = `
+        <td class="td-no">${nomor++}</td>
+        <td class="td-waktu">${now.toLocaleString("id-ID")}</td>
+        <td>${getArea()}</td>
+        <td class="td-helm">${helmet}</td>
+        <td class="td-vest">${vest}</td>
+        <td><span class="badge ${patuh ? "badge-patuh" : "badge-tidak"}">${patuh ? "✓ PATUH" : "✗ TIDAK PATUH"}</span></td>
+    `;
+    row.dataset.dateStr = dateStr;
+    row.dataset.timestamp = now.getTime();
+    document.getElementById("dataTable").prepend(row);
+    allRows.unshift(row);
+}
+
+async function kirimGambar(formData, token) {
+    const res = await fetch(`${API_BASE}/api/detection/predict`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData
+    });
+    if (!res.ok) throw new Error(`Server ${res.status}`);
+    return await res.json();
+}
+
+/* ── UPLOAD ── */
+document.getElementById("btnUpload").addEventListener("click", () => uploadInput.click());
+
+uploadInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    uploadInput.value = ""; // reset agar file sama bisa dipilih ulang
+
+    const token = getToken();
+    if (!token) { setStatus("Belum login!", "error"); setTimeout(() => location.href = "login.html", 1500); return; }
+
+    stopCamera();
+    showLoader(true);
+    detectedImage.style.display = "none";
+    placeholder.style.display = "none";
+    setStatus("Memproses gambar...", "loading");
+
+    const fd = new FormData();
+    fd.append("image", file);
+    fd.append("area_proyek", getArea());
+
+    try {
+        const data = await kirimGambar(fd, token);
+        showPreview(data.result_image_path); // loader dimatikan di dalam showPreview → onload
+        showStats(data.helmet, data.vest);
+        await loadHistoricalData();
+        await filterToday(); // Auto-filter hari ini
+    } catch (err) {
+        showLoader(false);
+        setStatus("Error: " + err.message, "error");
+        console.error(err);
+    }
+});
+
+/* ── CAMERA ── */
+btnCamera.addEventListener("click", () => cameraActive ? stopCamera() : startCamera());
+
+async function startCamera() {
+    const token = getToken();
+    if (!token) { setStatus("Belum login!", "error"); return; }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        currentStream = stream;
+        video.srcObject = stream;
+        placeholder.style.display = "none";
+        detectedImage.style.display = "none";
+        video.style.display = "block";
+        previewBox.classList.add("active");
+        cameraActive = true; detecting = true;
+        cameraLabel.textContent = "Stop Kamera";
+        btnCamera.classList.replace("btn-secondary", "btn-primary");
+        setStatus("Kamera aktif...", "loading");
+        setTimeout(detectLoop, 2000);
+    } catch { setStatus("Akses kamera ditolak", "error"); }
+}
+
+function stopCamera() {
+    detecting = false; cameraActive = false;
+    if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
+    video.style.display = "none";
+    cameraLabel.textContent = "Aktifkan Kamera";
+    btnCamera.classList.replace("btn-primary", "btn-secondary");
+    if (detectedImage.style.display === "none") {
+        placeholder.style.display = "";
+        previewBox.classList.remove("active");
+        setStatus("Menunggu input...", "idle");
+    }
+}
+
+async function detectLoop() {
+    if (!detecting) return;
+    const token = getToken();
+    if (!token) { stopCamera(); return; }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    canvas.toBlob(async (blob) => {
+        if (!blob || !detecting) return;
+        const fd = new FormData();
+        fd.append("image", blob, "frame.jpg");
+        fd.append("area_proyek", getArea());
+        try {
+            const data = await kirimGambar(fd, token);
+            if (!detecting) return;
+            showPreview(data.result_image_path);
+            showStats(data.helmet, data.vest);
+            await loadHistoricalData();
+            await filterToday(); // Auto-filter hari ini
+            stopCamera();
+        } catch (err) {
+            if (detecting) setStatus("Error: " + err.message, "error");
+            stopCamera();
+        }
+    }, "image/jpeg", 0.92);
+}
+
+/* ── FILTER ── */
+function filterByDateRange() {
+    const dateFromVal = dateFrom.value;
+    const dateToVal = dateTo.value;
+
+    if (!dateFromVal || !dateToVal) {
+        alert("Silakan pilih tanggal awal dan akhir");
+        return;
+    }
+
+    // Fetch dari backend dengan filter tanggal
+    fetchFilteredData(dateFromVal, dateToVal);
+}
+
+// Filter untuk hari ini saja (auto-call setelah deteksi)
+async function filterToday() {
+    const today = new Date();
+    const dateStr = today.getFullYear() + "-" + 
+                    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+                    String(today.getDate()).padStart(2, "0");
+    
+    // Set input value
+    dateFrom.value = dateStr;
+    dateTo.value = dateStr;
+    
+    // Fetch filtered data untuk hari ini
+    await fetchFilteredData(dateStr, dateStr);
+}
+
+async function fetchFilteredData(dateFrom, dateTo) {
+    const token = getToken();
+    if (!token) {
+        setStatus("Belum login!", "error");
+        return;
+    }
+    
+    try {
+        const url = `${API_BASE}/api/detection/history?date_from=${dateFrom}&date_to=${dateTo}`;
+        const res = await fetch(url, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error(`Server ${res.status}`);
+        const json = await res.json();
+        
+        if (json.success && json.data) {
+            const tbody = document.getElementById("dataTable");
+            tbody.innerHTML = "";
+            allRows = [];
+            currentData = []; // Reset currentData
+            nomor = 1;
+            let count = 0;
+            
+            json.data.forEach(item => {
+                const row = document.createElement("tr");
+                const date = new Date(item.created_at);
+                const patuh = item.helmet_count > 0 && item.vest_count > 0 && item.helmet_count === item.vest_count;
+                
+                row.innerHTML = `
+                    <td class="td-no">${nomor++}</td>
+                    <td class="td-waktu">${date.toLocaleString("id-ID")}</td>
+                    <td>${item.area_proyek || "Area Umum"}</td>
+                    <td class="td-helm">${item.helmet_count}</td>
+                    <td class="td-vest">${item.vest_count}</td>
+                    <td><span class="badge ${patuh ? "badge-patuh" : "badge-tidak"}">${patuh ? "✓ PATUH" : "✗ TIDAK PATUH"}</span></td>
+                `;
+                row.dataset.dateStr = date.toLocaleDateString("id-ID");
+                row.dataset.timestamp = date.getTime();
+                
+                tbody.appendChild(row);
+                allRows.push(row);
+                currentData.push(item); // Track data untuk PDF
+                count++;
+            });
+            
+            tableCountEl.textContent = count + " entri (difilter)";
+            setStatus(`${count} data ditemukan ✓`, "success");
+        }
+    } catch (err) {
+        console.error("Filter error:", err);
+        setStatus("Error: " + err.message, "error");
+    }
+}
+
+function resetFilter() {
+    dateFrom.value = "";
+    dateTo.value = "";
+    loadHistoricalData(); // Reload semua data dari database
+    setStatus("Filter direset ✓", "success");
+}
+
+/* ── LOAD DATA DARI DATABASE ── */
+async function loadHistoricalData() {
+    const token = getToken();
+    if (!token) return;
+    
+    try {
+        const res = await fetch(`${API_BASE}/api/detection/history`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error(`Server ${res.status}`);
+        const json = await res.json();
+        
+        if (json.success && json.data && json.data.length > 0) {
+            const tbody = document.getElementById("dataTable");
+            tbody.innerHTML = ""; // Kosongkan tabel
+            allRows = [];
+            nomor = 1;
+            entryCount = 0;
+            
+            json.data.forEach(item => {
+                const row = document.createElement("tr");
+                const date = new Date(item.created_at);
+                const patuh = item.helmet_count > 0 && item.vest_count > 0 && item.helmet_count === item.vest_count;
+                
+                row.innerHTML = `
+                    <td class="td-no">${nomor++}</td>
+                    <td class="td-waktu">${date.toLocaleString("id-ID")}</td>
+                    <td>${item.area_proyek || "Area Umum"}</td>
+                    <td class="td-helm">${item.helmet_count}</td>
+                    <td class="td-vest">${item.vest_count}</td>
+                    <td><span class="badge ${patuh ? "badge-patuh" : "badge-tidak"}">${patuh ? "✓ PATUH" : "✗ TIDAK PATUH"}</span></td>
+                `;
+                row.dataset.dateStr = date.toLocaleDateString("id-ID");
+                row.dataset.timestamp = date.getTime();
+                
+                tbody.appendChild(row);
+                allRows.push(row);
+                entryCount++;
+            });
+            
+            tableCountEl.textContent = entryCount + " entri";
+            console.log("Data historical loaded:", entryCount);
+        }
+    } catch (err) {
+        console.error("Load history error:", err);
+    }
+}
+
+// Panggil saat halaman selesai dimuat
+document.addEventListener("DOMContentLoaded", loadHistoricalData);
+
+btnFilter.addEventListener("click", filterByDateRange);
+btnResetFilter.addEventListener("click", resetFilter);
+
+/* ── PDF ── */
+async function downloadPDF() {
+    const token = getToken();
+    if (!token) return alert("Belum login!");
+
+    // Gunakan currentData (data yang sudah terfilter di tabel)
+    const data = currentData && currentData.length > 0 ? currentData : [];
+
+    if (data.length === 0) {
+        return alert("Data kosong. Silakan filter atau deteksi terlebih dahulu.");
+    }
+
+    // =========================
+    // BUILD HTML
+    // =========================
+    let rows = "";
+    data.forEach((item, i) => {
+        const patuh = item.helmet_count > 0 && item.vest_count > 0 && item.helmet_count === item.vest_count;
+        rows += `
+            <tr>
+                <td style="padding:8px;border:1px solid #ccc">${i + 1}</td>
+                <td style="padding:8px;border:1px solid #ccc">${new Date(item.created_at).toLocaleString("id-ID")}</td>
+                <td style="padding:8px;border:1px solid #ccc">${item.area_proyek || "-"}</td>
+                <td style="padding:8px;border:1px solid #ccc">${item.helmet_count}</td>
+                <td style="padding:8px;border:1px solid #ccc">${item.vest_count}</td>
+                <td style="padding:8px;border:1px solid #ccc;text-align:center">${patuh ? "✓ PATUH" : "✗ TIDAK"}</td>
+            </tr>
+        `;
+    });
+
+    const element = document.createElement("div");
+    element.innerHTML = `
+        <div style="padding:20px;background:#fff;font-family:Arial,sans-serif;width:800px">
+            <h2 style="margin-bottom:20px;text-align:center;color:#333">LAPORAN DETEKSI APD</h2>
+            <p style="margin-bottom:10px;color:#666;font-size:12px">Tanggal Cetak: ${new Date().toLocaleString("id-ID")}</p>
+            <table style="border-collapse:collapse;width:100%;border:1px solid #ccc">
+                <thead>
+                    <tr style="background-color:#333;color:white">
+                        <th style="padding:8px;border:1px solid #ccc">No</th>
+                        <th style="padding:8px;border:1px solid #ccc">Waktu</th>
+                        <th style="padding:8px;border:1px solid #ccc">Area</th>
+                        <th style="padding:8px;border:1px solid #ccc">Helm</th>
+                        <th style="padding:8px;border:1px solid #ccc">Rompi</th>
+                        <th style="padding:8px;border:1px solid #ccc">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+            <p style="margin-top:20px;font-size:10px;color:#999;text-align:center">© 2026 APDetect. Smart PPE Detection System</p>
+        </div>
+    `;
+
+    element.style.position = "fixed";
+    element.style.top = "-10000px";
+    element.style.left = "0";
+    element.style.background = "#fff";
+    element.style.zIndex = "-1";
+
+    document.body.appendChild(element);
+
+    await new Promise(r => setTimeout(r, 500));
+
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#ffffff"
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth - 10;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 5;
+
+        pdf.addImage(imgData, "PNG", 5, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 10);
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, "PNG", 5, position, imgWidth, imgHeight);
+            heightLeft -= (pageHeight - 10);
+        }
+
+        pdf.save("laporan_deteksi_apd.pdf");
+        alert("PDF berhasil diunduh!");
+
+    } catch (error) {
+        console.error("PDF Error:", error);
+        alert("Error membuat PDF: " + error.message);
+    } finally {
+        if (document.body.contains(element)) {
+            document.body.removeChild(element);
+        }
+    }
+}
+
+</script>
+</body>
+</html>

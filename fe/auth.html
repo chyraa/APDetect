@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>APDetect - Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen flex flex-col bg-gradient-to-r from-[#eef3f8] via-white to-[#f3ecf9]">
+
+    <!-- MAIN -->
+    <div class="flex-grow flex items-center justify-center">
+
+        <div class="flex gap-12">
+
+            <!-- LOGIN CARD -->
+            <div id="loginCard"
+                class="w-[330px] bg-gradient-to-br from-[#dbe6f2] via-white to-[#e8f0f8]
+                p-8 rounded-3xl shadow-md transition-all duration-500">
+
+                <h2 class="text-xl font-bold text-center text-[#2f4f6f] mb-6">
+                    Selamat Datang <br> Kembali
+                </h2>
+
+                <form id="loginForm" class="space-y-4">
+
+                    <input
+                        id="loginEmail"
+                        type="email"
+                        placeholder="Email"
+                        class="w-full px-4 py-2 rounded-full bg-white text-sm focus:outline-none">
+
+                    <input
+                        id="loginPassword"
+                        type="password"
+                        placeholder="Password"
+                        class="w-full px-4 py-2 rounded-full bg-white text-sm focus:outline-none">
+
+                    <button
+                        type="submit"
+                        class="w-full bg-[#203a5f] text-white py-2 rounded-full text-sm hover:opacity-90">
+                        Masuk
+                    </button>
+
+                </form>
+
+                <p class="text-xs text-center mt-4 text-gray-700">
+                    Belum punya akun?
+                    <span
+                        onclick="togglePanel()"
+                        class="text-[#203a5f] font-semibold cursor-pointer">
+                        Daftar
+                    </span>
+                </p>
+
+            </div>
+
+
+            <!-- REGISTER CARD -->
+            <div id="registerCard"
+                class="w-[330px] bg-gradient-to-br from-[#efe6f6] via-white to-[#f4ecfb]
+                p-8 rounded-3xl shadow-md opacity-40 scale-95 transition-all duration-500">
+
+                <h2 class="text-xl font-bold text-center text-[#6a4f85] mb-6">
+                    Buat Akun
+                </h2>
+
+                <form id="registerForm" class="space-y-4">
+
+                    <input
+                        id="regUsername"
+                        type="text"
+                        placeholder="Username"
+                        class="w-full px-4 py-2 rounded-full bg-white text-sm">
+
+                    <input
+                        id="regEmail"
+                        type="email"
+                        placeholder="Email"
+                        class="w-full px-4 py-2 rounded-full bg-white text-sm">
+
+                    <input
+                        id="regPassword"
+                        type="password"
+                        placeholder="Password"
+                        class="w-full px-4 py-2 rounded-full bg-white text-sm">
+
+                    <input
+                        id="regConfirm"
+                        type="password"
+                        placeholder="Konfirmasi Password"
+                        class="w-full px-4 py-2 rounded-full bg-white text-sm">
+
+                    <button
+                        type="submit"
+                        class="w-full bg-[#203a5f] text-white py-2 rounded-full text-sm">
+                        Daftar
+                    </button>
+
+                </form>
+
+                <p class="text-xs text-center mt-4 text-gray-700">
+                    Sudah punya akun?
+                    <span
+                        onclick="togglePanel()"
+                        class="text-[#203a5f] font-semibold cursor-pointer">
+                        Masuk
+                    </span>
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <footer class="bg-[#122b47] text-white text-center py-4 text-xs">
+        APDetect - Smart PPE Detection System <br>
+        Enhancing Workplace Safety through AI-Based Detection Technology <br>
+        © 2025 APDetect
+    </footer>
+
+
+    <script>
+
+        /* TOGGLE LOGIN / REGISTER */
+
+        function togglePanel() {
+
+            const login = document.getElementById("loginCard");
+            const register = document.getElementById("registerCard");
+
+            login.classList.toggle("opacity-40");
+            login.classList.toggle("scale-95");
+
+            register.classList.toggle("opacity-40");
+            register.classList.toggle("scale-95");
+
+        }
+
+
+
+        /* LOGIN */
+
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            try {
+
+                const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                console.log("LOGIN RESPONSE:", data);
+
+                if (response.ok && data.status === "success") {
+
+                    const token = data.data.access_token;
+
+                    // simpan token
+                    localStorage.setItem("token", token);
+
+                    alert("Login berhasil");
+
+                    // redirect ke halaman deteksi
+                    window.location.href = "dashboard.html";
+
+                } else {
+
+                    alert(data.message || "Login gagal");
+
+                }
+
+            } catch (err) {
+
+                console.error("LOGIN ERROR:", err);
+                alert("Server tidak dapat dihubungi");
+
+            }
+
+        });
+
+        /* REGISTER */
+
+        document.getElementById("registerForm").addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            const username = document.getElementById("regUsername").value;
+            const email = document.getElementById("regEmail").value;
+            const password = document.getElementById("regPassword").value;
+            const confirm = document.getElementById("regConfirm").value;
+
+            if (password !== confirm) {
+
+                alert("Password tidak sama");
+                return;
+
+            }
+
+            const response = await fetch("http://127.0.0.1:5000/api/auth/register", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+
+            });
+
+            const data = await response.json();
+
+            alert(data.message);
+
+        });
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+    "liveServer.settings.ignoreFiles": [
+        "**/uploads/**",
+        "**/results/**",
+        "**/runs/**",
+        "**/*.jpeg",
+        "**/*.jpg",
+        "**/*.png"
+    ]
+}
