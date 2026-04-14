@@ -12,6 +12,7 @@ RESULTS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 
 def create_app():
     app = Flask(__name__)
+    
     app.config.from_object(Config)
 
     CORS(
